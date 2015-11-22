@@ -96,6 +96,10 @@ console.log("hi");
             icon: marks[i].icon
         });
         this.markers[i].setMap(this.map);
+         
+         this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
+
+         this.customerDetails[i].distance =  this.markers[i].distance;
         
         if( marks[i].shopLocation !== undefined){
             lines[i] = new google.maps.Polyline({
@@ -103,20 +107,20 @@ console.log("hi");
                   marks[i].location, 
                   marks[i].shopLocation
               ],
-              strokeColor: "#000",
-              strokeOpacity: 0.25,
+              strokeColor: this.calulateColour(marks[i].distance),
+              strokeOpacity: 0.5,
               strokeWeight: 2,
               map: this.map
             });
 
             this.zone = zone;
-             this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
 
-            var that = this;
-            this.markers[i].addListener('click',  (function(){
-              that.updateDistance(this.distance);
-            } )) ;
- } 
+          var that = this;
+          this.markers[i].addListener('click',  (function(){
+            that.updateDistance(this.distance);
+          })
+        );
+      } 
     }
   }
   rad (x) {
@@ -125,6 +129,19 @@ console.log("hi");
 
   updateDistance(distance) {
     this.zone.run(() => {    this.distance = "" + parseFloat(Math.round( distance * 100) / 100).toFixed(2).toString() + " Miles"; });
+  }
+  calulateColour(distance){
+    switch (true) {
+      case (0 <= distance &&  distance < 1.5): 
+        return "GREEN"
+      break;
+      case (1.5 <= distance &&  distance < 5): 
+        return "ORANGE";
+      break;
+      case (5 <= distance &&  distance < 30000): 
+        return "RED";
+      break;
+    }
   }
 
   calDistanceToShop (p1, p2){
