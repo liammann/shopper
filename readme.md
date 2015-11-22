@@ -1,8 +1,8 @@
-#NEEDS REBUILDING BUT IT KINDA WORKS 
+### NEEDS REBUILDING BUT IT KINDA WORKS 
 
 
-#TODO 
-* add slider to edit the thresholds for each colour line
+## TODO 
+* add slider to edit the thresholds for each colour line - done
 * colour to hex values 
 * make customer stats area 
 * make lines clickable
