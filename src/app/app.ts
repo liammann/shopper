@@ -47,7 +47,7 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
         width: 100%;
     }
     input {
-      width: 80%;
+      width: 75%;
     }
   `],
   // Every Angular template is first compiled by the browser before Angular runs it's compiler
@@ -75,7 +75,7 @@ export class App {
       this.greenMax = parseFloat(2).toFixed(2);
       this.redMin = parseFloat(5).toFixed(2);
     var mapOptions = {
-        zoom: 12,
+        zoom: 13,
         center: new google.maps.LatLng(50.81926335, -1.0844131),
         mapTypeId: google.maps.MapTypeId.TERRAIN
     }
