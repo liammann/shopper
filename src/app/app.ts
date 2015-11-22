@@ -46,6 +46,9 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
         height: 100%;
         width: 100%;
     }
+    input {
+      width: 80%;
+    }
   `],
   // Every Angular template is first compiled by the browser before Angular runs it's compiler
   templateUrl: 'tmpl.html'
@@ -63,12 +66,17 @@ export class App {
   zone: NgZone;
   mid: int;
   distance;
+  lines;
+  greenMax;
+  redMin;
 
   constructor(public http: Http, zone:NgZone) {
     this.data = "hello";
+      this.greenMax = parseFloat(2).toFixed(2);
+      this.redMin = parseFloat(5).toFixed(2);
     var mapOptions = {
-        zoom: 13,
-        center: new google.maps.LatLng(50.7926335, -1.0844131),
+        zoom: 12,
+        center: new google.maps.LatLng(50.81926335, -1.0844131),
         mapTypeId: google.maps.MapTypeId.TERRAIN
     }
 
@@ -79,7 +87,7 @@ export class App {
 console.log("hi");
   }
   addMarkers (marks){
-    var lines = []
+    this.lines = []
     for (var i = 0; i < marks.length; ++i) {
 
       // if(marks[i].location == ""){
@@ -103,7 +111,7 @@ console.log("hi");
            this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
            this.customerDetails[i].distance =  this.markers[i].distance;
 
-            lines[i] = new google.maps.Polyline({
+            this.lines[i] = new google.maps.Polyline({
               path: [
                   marks[i].location, 
                   marks[i].shopLocation
@@ -133,15 +141,26 @@ console.log("hi");
   }
   calulateColour(distance){
     switch (true) {
-      case (0 <= distance &&  distance < 1.5): 
+      case (0 <= distance &&  distance < this.greenMax): 
         return "GREEN"
       break;
-      case (1.5 <= distance &&  distance < 5): 
+      case (this.greenMax <= distance &&  distance < this.redMin): 
         return "ORANGE";
       break;
-      case (5 <= distance &&  distance < 30000): 
+      case (this.redMin <= distance &&  distance < 999): 
         return "RED";
       break;
+    }
+  }
+  recalulateColour (val, colour){
+    if (colour === "green"){
+      this.greenMax = parseFloat(val).toFixed(2);
+    } else if(colour === "red"){  
+      this.redMin = parseFloat(val).toFixed(2);
+    }
+  
+    for (var i = 0; i < this.customerDetails.length; ++i) {
+      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance)});
     }
   }
 

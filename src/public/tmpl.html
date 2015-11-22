@@ -1,12 +1,27 @@
   <main>
 
-  <div style="font-family: sans-serif; z-index:9999; position: relative; height: 15vh; top:0; left: 0; right: 0; background: black; color: white;">
-  <div style="float:left; width: 50%; padding: 2%;">
-      <p>Distance to store: {{ distance }}</p>
+  <div style="font-family: sans-serif; z-index:9999; position: absolute; min-height: 15vh; top:0; bottom: 0; right: 0; background: black; color: white; overflow: hidden;" >
+  <div style="float:left; width: 100%; padding: 2%;">
+  <h2>Customer Details</h2>
+      <p>Distance traveled: {{ distance }}</p>
   </div> 
+  <div style="float:left; width: 100%; padding: 2%;"><h2>Settings</h2>
+<p style="border-color: green;">
+Max ({{ greenMax }}): <input [value]="greenMax" (change)='recalulateColour($event.target.value, "green")' type="range" min="0" max="20"  step="0.25" />
+</p>
+<p style="border-color: orange;"> 
+  Min ({{ greenMax }}): <input [value]="greenMax" (change)='recalulateColour($event.target.value, "green")' type="range" min="0" max="20"v alue="0" step="0.25" /><br>
+  Max({{ redMin }}): <input [value]="redMin" (change)='recalulateColour($event.target.value, "red")' type="range" min="0" max="20" value="0" step="0.25" />
+</p>
+<p style="border-color: red;"> 
+  Min ({{ redMin }}): <input [value]="redMin" (change)='recalulateColour($event.target.value, "red")' type="range" min="0" max="20"v alue="0" step="0.25" />
+</p>
+
+
+  </div>
   </div>
 
-  <div style="width:100%; height:90vh;">
+  <div style="width:80%; height:100vh;">
     <div id="map"></div>
   </div>
   </main>
