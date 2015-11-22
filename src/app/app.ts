@@ -97,19 +97,20 @@ console.log("hi");
         });
         this.markers[i].setMap(this.map);
          
-         this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
-
-         this.customerDetails[i].distance =  this.markers[i].distance;
         
         if( marks[i].shopLocation !== undefined){
+         
+           this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
+           this.customerDetails[i].distance =  this.markers[i].distance;
+
             lines[i] = new google.maps.Polyline({
               path: [
                   marks[i].location, 
                   marks[i].shopLocation
               ],
               strokeColor: this.calulateColour(marks[i].distance),
-              strokeOpacity: 0.5,
-              strokeWeight: 2,
+              strokeOpacity: 0.75,
+              strokeWeight: 1,
               map: this.map
             });
 
