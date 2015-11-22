@@ -11,3 +11,5 @@
 	* add/ subtract stores that arent open
 	* play though style history with milestones 
 * more realistic data
+
+* new store ploter
