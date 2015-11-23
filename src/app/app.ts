@@ -63,92 +63,116 @@ export class App {
   shops = [];
   customerDetails = [];
   data; // default data
-  markers = [];
+  storeMarkers = [];
+  customerMarkers = [];
   zone: NgZone;
   distance;
-  lines;
+  lines = [];
   greenMax;
   redMin;
   cusPostCode;
+  date;
 
   constructor(public http: Http, zone:NgZone) {
-    this.data = "hello";
-      this.greenMax = parseFloat(2).toFixed(2);
-      this.redMin = parseFloat(5).toFixed(2);
+    this.strokeOpacity = 50;
+    this.greenMax = parseFloat(2).toFixed(2);
+    this.redMin = parseFloat(5).toFixed(2);
+    this.date = 2100;
+
     var mapOptions = {
         zoom: 13,
-        center: new google.maps.LatLng(50.81926335, -1.0844131),
-        mapTypeId: google.maps.MapTypeId.TERRAIN
+        center: new google.maps.LatLng(50.81926335, -1.0844131)
     }
 
     this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
   }
-  changeInfoPanel(i){
-console.log("hi");
+  onInit() {
+    this.getData(2015);
   }
-  addMarkers (marks){
-    this.lines = []
+
+  clearOverlays() {
+    for (var i = 0; i < this.storeMarkers.length; i++ ) {
+     this.storeMarkers[i].setMap(null);
+    }
+    this.storeMarkers.length = 0;
+    for (var i = 0; i < this.customerMarkers.length; i++ ) {
+     this.customerMarkers[i].setMap(null);
+    }
+    this.customerMarkers.length = 0;
+
+    for (var i = 0; i < this.lines.length; i++ ) {
+      this.lines[i].setMap(null);
+    }
+    this.lines.length = 0;
+  }
+  addStoreMarkers (marks, year){
     for (var i = 0; i < marks.length; ++i) {
-
-      // if(marks[i].location == ""){
-      //   this.customerDetails[i].location = this.getAddress(marks[i].postcode, i);
-
-      //   marks[i].location = this.customerDetails[i].location;
-      //   this.addMarkers([marks[i]]);
-
-      // } else {
-        this.markers[i] = new google.maps.Marker({
+      var storeYear = new Date(marks[i].dateOpen).getFullYear();
+      console.log("store open year", storeYear);
+      console.log("current year", year);
+      if(storeYear > year){
+        this.storeMarkers[i] = new google.maps.Marker({
             map: this.map,
             position: marks[i].location,
             title: marks[i].name,
             icon: marks[i].icon
         });
-        this.markers[i].setMap(this.map);
-         
-        
-        if( marks[i].shopLocation !== undefined){
-         
-          this.customerDetails[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
-          this.markers[i].uid = i;
-
-            this.lines[i] = new google.maps.Polyline({
-              path: [
-                  marks[i].location, 
-                  marks[i].shopLocation
-              ],
-              strokeColor: this.calulateColour(marks[i].distance),
-              strokeOpacity: this.strokeOpacity / 100,
-              strokeWeight: 2,
-              map: this.map
-            });
-          this.lines[i].uid = i;
-
-            this.zone = zone;
-
-          var that = this;
-          this.lines[i].addListener('mouseover',  (function(){
-             this.setOptions({strokeWeight: 7, strokeOpacity: 0.95 });
-
-          }));
-          this.lines[i].addListener('mouseout',  (function(){
-            console.log(this);
-             this.setOptions({strokeWeight: 1, strokeOpacity: that.strokeOpacity / 100 });
-
-          }));
-          this.lines[i].addListener('click',  (function(){
-            that.updateInfo(this.uid );
-          }));
-          this.markers[i].addListener('click',  (function(){
-              that.updateInfo(this.uid );
-          }));
+        this.storeMarkers[i].setMap(this.map);
       } 
     }
   }
-  rad (x) {
-    return x * Math.PI / 180;
-  }
+  addCustomerMarkers (marks){
+    for (var i = 0; i < marks.length; ++i) {
+      this.customerMarkers[i] = new google.maps.Marker({
+          map: this.map,
+          position: marks[i].location,
+          title: marks[i].name,
+          icon: marks[i].icon
+      });
+      this.customerMarkers[i].setMap(this.map);
 
+      this.customerDetails[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
+      this.customerMarkers[i].uid = i;
+
+      this.lines[i] = new google.maps.Polyline({
+        path: [
+            marks[i].location, 
+            marks[i].shopLocation
+        ],
+        strokeColor: this.calulateColour(marks[i].distance),
+        strokeOpacity: this.strokeOpacity / 100,
+        strokeWeight: 2,
+        map: this.map
+      });
+      this.lines[i].uid = i;
+      this.zone = zone;
+
+      var that = this;
+      this.lines[i].addListener('mouseover',  (function(){
+         this.setOptions({strokeWeight: 7, strokeOpacity: 0.95 });
+      }));
+      this.lines[i].addListener('mouseout',  (function(){
+         this.setOptions({strokeWeight: 1, strokeOpacity: that.strokeOpacity / 100 });
+      }));
+      this.lines[i].addListener('click',  (function(){
+        that.updateInfo(this.uid);
+      }));
+      this.customerMarkers[i].addListener('click',  (function(){
+        that.updateInfo(this.uid);
+      }));
+    }
+  }
+  changedate (year) {
+    this.clearOverlays();
+    this.customerMarkers = [];
+    this.storeMarkers = [];
+    this.lines = [];
+    this.getData(year);
+    
+
+
+  }
   updateInfo(uid) {
     this.zone.run(() => {    
       this.distance = "" + parseFloat(Math.round( this.customerDetails[uid].distance * 100) / 100).toFixed(2).toString() + " Miles"; 
@@ -181,7 +205,7 @@ console.log("hi");
   
     for (var i = 0; i < this.customerDetails.length; ++i) {
       this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance),
-        strokeOpacity: this.strokeOpacity /100 });
+        strokeOpacity: this.strokeOpacity / 100 });
     }
   }
 
@@ -197,14 +221,19 @@ console.log("hi");
     return d; 
   }
 
-  onInit() {
+  rad (x) {
+    return x * Math.PI / 180;
+  }
+
+
+  getData(year){
 
     this.http.get('shops.json')
       .map(res => res['_body'])
       .subscribe(
        data => this.shops = JSON.parse(data),
        err => this.errorMessage(err),
-       () => this.addMarkers(this.shops)
+       () => this.addStoreMarkers(this.shops, year)
     );
 
     this.http.get('customerDetails.json')
@@ -212,12 +241,11 @@ console.log("hi");
       .subscribe(
        data => this.customerDetails = JSON.parse(data),
       err => this.errorMessage(err),
-      () => this.addMarkers(this.customerDetails)
+      () => this.addCustomerMarkers(this.customerDetails)
     );
+
   }
   errorMessage(err) {
     console.log(err);
-  
-
   }
 }
