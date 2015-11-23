@@ -2,8 +2,11 @@
 
   <div style="font-family: sans-serif; z-index:9999; position: absolute; min-height: 15vh; top:0; bottom: 0; right: 0; background: #fafafa; color: #333; border-left: #aaa 2px solid ; overflow: hidden;" >
   <div style="float:left; width: 100%; padding: 2%;">
-  <h2>Customer Details</h2>
-      <p>Distance traveled: {{ distance }}</p>
+  <h2>Customer Details - #{{ uid }}</h2>
+  <p> Post Code: {{cusPostCode}}
+  <p> Date of Last Visit: </p>
+  <p> Number of Visits: </p>
+  <p>Distance traveled: {{ distance }}</p>
   </div> 
   <div style="float:left; width: 100%; padding: 2%;"><h2>Settings</h2>
 <p style="border-color: green;">
@@ -16,7 +19,9 @@ Max({{ greenMax }}): <input [value]="greenMax" (change)='recalulateColour($event
 <p style="border-color: red;"> 
   Min ({{ redMin }}): <input [value]="redMin" (change)='recalulateColour($event.target.value, "red")' type="range" min="0" max="20"v alue="0" step="0.25" />
 </p>
-
+<p style="border-color: grey;"> 
+  Opacity ({{ strokeOpacity }}): <input [value]="opacity" (change)='recalulateColour($event.target.value, "opacity")' type="range" min="0" max="100" value="40" step="5" />
+</p>
 
   </div>
   </div>

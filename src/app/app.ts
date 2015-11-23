@@ -55,20 +55,21 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
 })
 export class App {
   // These are member type
+  strokeOpacity;
   title: string;
+  uid;
   address: string = 'po5 1he';
   map;
   shops = [];
   customerDetails = [];
   data; // default data
-  unjsondata; // default data
   markers = [];
   zone: NgZone;
-  mid: int;
   distance;
   lines;
   greenMax;
   redMin;
+  cusPostCode;
 
   constructor(public http: Http, zone:NgZone) {
     this.data = "hello";
@@ -108,8 +109,8 @@ console.log("hi");
         
         if( marks[i].shopLocation !== undefined){
          
-           this.markers[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
-           this.customerDetails[i].distance =  this.markers[i].distance;
+          this.customerDetails[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
+          this.markers[i].uid = i;
 
             this.lines[i] = new google.maps.Polyline({
               path: [
@@ -117,18 +118,30 @@ console.log("hi");
                   marks[i].shopLocation
               ],
               strokeColor: this.calulateColour(marks[i].distance),
-              strokeOpacity: 0.75,
-              strokeWeight: 1,
+              strokeOpacity: this.strokeOpacity / 100,
+              strokeWeight: 2,
               map: this.map
             });
+          this.lines[i].uid = i;
 
             this.zone = zone;
 
           var that = this;
+          this.lines[i].addListener('mouseover',  (function(){
+             this.setOptions({strokeWeight: 7, strokeOpacity: 0.95 });
+
+          }));
+          this.lines[i].addListener('mouseout',  (function(){
+            console.log(this);
+             this.setOptions({strokeWeight: 1, strokeOpacity: that.strokeOpacity / 100 });
+
+          }));
+          this.lines[i].addListener('click',  (function(){
+            that.updateInfo(this.uid );
+          }));
           this.markers[i].addListener('click',  (function(){
-            that.updateDistance(this.distance);
-          })
-        );
+              that.updateInfo(this.uid );
+          }));
       } 
     }
   }
@@ -136,8 +149,12 @@ console.log("hi");
     return x * Math.PI / 180;
   }
 
-  updateDistance(distance) {
-    this.zone.run(() => {    this.distance = "" + parseFloat(Math.round( distance * 100) / 100).toFixed(2).toString() + " Miles"; });
+  updateInfo(uid) {
+    this.zone.run(() => {    
+      this.distance = "" + parseFloat(Math.round( this.customerDetails[uid].distance * 100) / 100).toFixed(2).toString() + " Miles"; 
+      this.cusPostCode = this.customerDetails[uid].postcode;
+      this.uid = uid;
+    });
   }
   calulateColour(distance){
     switch (true) {
@@ -158,9 +175,13 @@ console.log("hi");
     } else if(colour === "red"){  
       this.redMin = parseFloat(val).toFixed(2);
     }
+    else if(colour === "opacity"){  
+      this.strokeOpacity = val ;
+    }
   
     for (var i = 0; i < this.customerDetails.length; ++i) {
-      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance)});
+      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance),
+        strokeOpacity: this.strokeOpacity /100 });
     }
   }
 
@@ -193,60 +214,10 @@ console.log("hi");
       err => this.errorMessage(err),
       () => this.addMarkers(this.customerDetails)
     );
-
-
   }
-
-  serverData(data, currentCustomer) {
-    this.unjsondata = data._body; 
-    this.data = JSON.parse(this.unjsondata).results[0].geometry.location;
-    this.customerDetails[currentCustomer].location = this.data;
-  }
-
   errorMessage(err) {
     console.log(err);
-  }
-
-
-
-
-
-// not needed
-
   
-
-  enterAddress($event, newAddress) {
-     if($event.which === 13) { // ENTER_KEY
-
-        var length = this.customerDetails.push({    
-          "location": "", 
-          "postcode": newAddress.value,
-          "shop": "Tesco 1",
-          "date": "20/2/2014",
-          "icon": "customerIcon.png"
-        });
-
-        this.customerDetails[length-1].location = this.getAddress(newAddress.value, length-1);
-
-        this.addMarkers(this.customerDetails);
-
-        newAddress.value = '';
-
-     }
-  }
-
-  getAddress(newAddress, currentCustomer){
-
-    this.http
-      .get('https://maps.googleapis.com/maps/api/geocode/json?address=' + newAddress + '&key=AIzaSyBZVOSPh0Z4mv9jljJWzZNSug6upuec7Sg')
-      .subscribe(
-        // onNext callback
-        data =>  this.serverData(data, currentCustomer),
-        // onError callback
-        err  => this.errorMessage(err),
-        // onComplete callback
-        ()   =>  this.addMarkers(this.customerDetails)
-      );//end http
 
   }
 }
