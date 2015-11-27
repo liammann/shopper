@@ -56,9 +56,7 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
 export class App {
   // These are member type
   strokeOpacity;
-  title: string;
   uid;
-  address: string = 'po5 1he';
   map;
   shops = [];
   customerDetails = [];
@@ -77,7 +75,8 @@ export class App {
     this.strokeOpacity = 50;
     this.greenMax = parseFloat(2).toFixed(2);
     this.redMin = parseFloat(5).toFixed(2);
-    this.date = 2100;
+    this.date = 2010;
+    this.zone = zone;
 
     var mapOptions = {
         zoom: 13,
@@ -88,7 +87,7 @@ export class App {
 
   }
   onInit() {
-    this.getData(2015);
+    this.getData(2010);
   }
 
   clearOverlays() {
@@ -109,8 +108,7 @@ export class App {
   addStoreMarkers (marks, year){
     for (var i = 0; i < marks.length; ++i) {
       var storeYear = new Date(marks[i].dateOpen).getFullYear();
-      console.log("store open year", storeYear);
-      console.log("current year", year);
+
       if(storeYear > year){
         this.storeMarkers[i] = new google.maps.Marker({
             map: this.map,
@@ -124,6 +122,7 @@ export class App {
   }
   addCustomerMarkers (marks){
     for (var i = 0; i < marks.length; ++i) {
+
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
           position: marks[i].location,
@@ -135,6 +134,7 @@ export class App {
       this.customerDetails[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
       this.customerMarkers[i].uid = i;
 
+
       this.lines[i] = new google.maps.Polyline({
         path: [
             marks[i].location, 
@@ -145,10 +145,10 @@ export class App {
         strokeWeight: 2,
         map: this.map
       });
-      this.lines[i].uid = i;
-      this.zone = zone;
 
-      var that = this;
+      this.lines[i].uid = i;
+
+      var that = this; // scope needed for google map objects and updating info panel
       this.lines[i].addListener('mouseover',  (function(){
          this.setOptions({strokeWeight: 7, strokeOpacity: 0.95 });
       }));
@@ -169,10 +169,13 @@ export class App {
     this.storeMarkers = [];
     this.lines = [];
     this.getData(year);
-    
+  }
 
+  removeMarker(id){
+      this.customerMarkers[i] = {};
 
   }
+
   updateInfo(uid) {
     this.zone.run(() => {    
       this.distance = "" + parseFloat(Math.round( this.customerDetails[uid].distance * 100) / 100).toFixed(2).toString() + " Miles"; 
