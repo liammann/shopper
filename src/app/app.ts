@@ -56,9 +56,11 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
 export class App {
   // These are member type
   strokeOpacity;
+  title: string;
   uid;
+  address: string = 'po5 1he';
   map;
-  shops = [];
+  stores = [];
   customerDetails = [];
   data; // default data
   storeMarkers = [];
@@ -75,8 +77,7 @@ export class App {
     this.strokeOpacity = 50;
     this.greenMax = parseFloat(2).toFixed(2);
     this.redMin = parseFloat(5).toFixed(2);
-    this.date = 2010;
-    this.zone = zone;
+    this.date = 2100;
 
     var mapOptions = {
         zoom: 13,
@@ -87,7 +88,7 @@ export class App {
 
   }
   onInit() {
-    this.getData(2010);
+    this.getData(2015);
   }
 
   clearOverlays() {
@@ -105,50 +106,50 @@ export class App {
     }
     this.lines.length = 0;
   }
-  addStoreMarkers (marks, year){
-    for (var i = 0; i < marks.length; ++i) {
-      var storeYear = new Date(marks[i].dateOpen).getFullYear();
+  addStoreMarkers (marks){
 
-      if(storeYear > year){
-        this.storeMarkers[i] = new google.maps.Marker({
-            map: this.map,
-            position: marks[i].location,
-            title: marks[i].name,
-            icon: marks[i].icon
-        });
-        this.storeMarkers[i].setMap(this.map);
-      } 
+    for (var i = 0; i < marks.storeOpenings.length; ++i) {
+
+      this.stores[marks.storeOpenings[i].storeId] = marks.storeOpenings[i];
+      this.storeMarkers[i] = new google.maps.Marker({
+          map: this.map,
+          position: {"lat": marks.storeOpenings[i].storeLocation.latitude, "lng": marks.storeOpenings[i].storeLocation.longitude},
+          title: "tesco",
+          icon: "tesco.png"
+      });
+      this.storeMarkers[i].setMap(this.map);
     }
   }
   addCustomerMarkers (marks){
-    for (var i = 0; i < marks.length; ++i) {
+
+
+    for (var i = 0; i < marks.customerVisits.length; ++i) {
 
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
-          position: marks[i].location,
-          title: marks[i].name,
-          icon: marks[i].icon
+          position: {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
+          title: "test1",
+          icon: 'customerIcon.png'
       });
+
       this.customerMarkers[i].setMap(this.map);
-
-      this.customerDetails[i].distance = this.calDistanceToShop( marks[i].location, marks[i].shopLocation)*0.000621371192;
       this.customerMarkers[i].uid = i;
-
+      this.customerDetails[i] = marks.customerVisits[i];
 
       this.lines[i] = new google.maps.Polyline({
         path: [
-            marks[i].location, 
-            marks[i].shopLocation
+            {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
+            {"lat": this.stores[marks.customerVisits[i].storeId].storeLocation.latitude, "lng": this.stores[marks.customerVisits[i].storeId].storeLocation.longitude}
         ],
-        strokeColor: this.calulateColour(marks[i].distance),
+        strokeColor: this.calulateColour(marks.customerVisits[i].distance_travelled),
         strokeOpacity: this.strokeOpacity / 100,
         strokeWeight: 2,
         map: this.map
       });
-
       this.lines[i].uid = i;
+      this.zone = zone;  
 
-      var that = this; // scope needed for google map objects and updating info panel
+      var that = this;
       this.lines[i].addListener('mouseover',  (function(){
          this.setOptions({strokeWeight: 7, strokeOpacity: 0.95 });
       }));
@@ -169,16 +170,13 @@ export class App {
     this.storeMarkers = [];
     this.lines = [];
     this.getData(year);
-  }
+    
 
-  removeMarker(id){
-      this.customerMarkers[i] = {};
 
   }
-
   updateInfo(uid) {
     this.zone.run(() => {    
-      this.distance = "" + parseFloat(Math.round( this.customerDetails[uid].distance * 100) / 100).toFixed(2).toString() + " Miles"; 
+      this.distance = "" + this.customerDetails[uid].distance_travelled + " Miles"; 
       this.cusPostCode = this.customerDetails[uid].postcode;
       this.uid = uid;
     });
@@ -212,39 +210,23 @@ export class App {
     }
   }
 
-  calDistanceToShop (p1, p2){
-    var R = 6378137; // Earth’s mean radius in meter
-    var dLat = this.rad(p2.lat - p1.lat);
-    var dLong = this.rad(p2.lng - p1.lng);
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(this.rad(p1.lat)) * Math.cos(this.rad(p2.lat)) *
-    Math.sin(dLong / 2) * Math.sin(dLong / 2)
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    var d = R * c;
-    return d; 
-  }
 
-  rad (x) {
-    return x * Math.PI / 180;
-  }
+  getData(fromDate = "2000-01-01", toDate = "2015-01-01"){
 
-
-  getData(year){
-
-    this.http.get('shops.json')
+    this.http.get('/clientapi/stores')
       .map(res => res['_body'])
       .subscribe(
        data => this.shops = JSON.parse(data),
        err => this.errorMessage(err),
-       () => this.addStoreMarkers(this.shops, year)
+       () => this.addStoreMarkers(this.shops)
     );
 
-    this.http.get('customerDetails.json')
+    this.http.get('/clientapi/customer_visits?fromDate=2001-01-01&toDate=2015-01-01')
       .map(res => res['_body'])
       .subscribe(
-       data => this.customerDetails = JSON.parse(data),
-      err => this.errorMessage(err),
-      () => this.addCustomerMarkers(this.customerDetails)
+        data => this.customerDetails = JSON.parse(data),
+        err => this.errorMessage(err),
+        () => this.addCustomerMarkers(this.customerDetails)
     );
 
   }

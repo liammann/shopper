@@ -13,15 +13,3 @@
 * more realistic data
 
 * new store ploter
-
-* centre of map need to be provided by server
-
-
-## Server call's needed
-* centre of map
-* get customers with filter (start_date and end_date)
-* get store location with filter (start_date and end_date)
-* calculate distance for each customer to store
-* count number of times a customer vistis a store
-* post request to save all config option
-* predict where the new store should go

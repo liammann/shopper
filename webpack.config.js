@@ -48,9 +48,21 @@ module.exports = {
   devServer: {
     inline: true,
     colors: true,
+    host: "0.0.0.0",
     historyApiFallback: true,
     contentBase: 'src/public',
-    publicPath: '/__build__'
+    publicPath: '/__build__',
+
+    proxy: {
+            '/clientapi/*': {
+                target: 'http://localhost:4000',
+                secure: false,
+            },
+    },
+    watchOptions: {
+      poll: true
+    }
+
   },
 
   //
