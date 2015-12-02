@@ -124,6 +124,7 @@ export class App {
 
 
     for (var i = 0; i < marks.customerVisits.length; ++i) {
+        console.log("USER: "+i);
 
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
@@ -135,13 +136,14 @@ export class App {
       this.customerMarkers[i].setMap(this.map);
       this.customerMarkers[i].uid = i;
       this.customerDetails[i] = marks.customerVisits[i];
+      this.customerDetails.length = marks.customerVisits.length;
 
       this.lines[i] = new google.maps.Polyline({
         path: [
             {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
             {"lat": this.stores[marks.customerVisits[i].storeId].storeLocation.latitude, "lng": this.stores[marks.customerVisits[i].storeId].storeLocation.longitude}
         ],
-        strokeColor: this.calulateColour(marks.customerVisits[i].distance_travelled),
+        strokeColor: this.calulateColour(marks.customerVisits[i].distanceTravelled),
         strokeOpacity: this.strokeOpacity / 100,
         strokeWeight: 2,
         map: this.map
@@ -176,12 +178,13 @@ export class App {
   }
   updateInfo(uid) {
     this.zone.run(() => {    
-      this.distance = "" + this.customerDetails[uid].distance_travelled + " Miles"; 
+      this.distance = "" + this.customerDetails[uid].distanceTravelled + " Miles"; 
       this.cusPostCode = this.customerDetails[uid].postcode;
       this.uid = uid;
     });
   }
   calulateColour(distance){
+
     switch (true) {
       case (0 <= distance &&  distance < this.greenMax): 
         return "GREEN"
@@ -203,9 +206,8 @@ export class App {
     else if(colour === "opacity"){  
       this.strokeOpacity = val ;
     }
-  
     for (var i = 0; i < this.customerDetails.length; ++i) {
-      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance),
+      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distanceTravelled),
         strokeOpacity: this.strokeOpacity / 100 });
     }
   }
