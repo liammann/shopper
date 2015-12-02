@@ -5,9 +5,8 @@
   <div style="float:left; width: 100%; padding: 2%;">
     <h2>Customer Details - #{{ uid }}</h2>
     <p> Post Code: {{cusPostCode}}
-    <p> Date of Last Visit: </p>
-    <p> Number of Visits: </p>
-    <p>Distance traveled: {{ distance }}</p>
+    <p> Number of Visits: {{ visitsNumber }}</p>
+    <p> Distance traveled: {{ distance }}</p>
   </div> 
 
   <div style="float:left; width: 100%; padding: 2%;"><h2>Settings</h2>
@@ -28,23 +27,29 @@
 
 </div>
 
-<div style="width:75%; height:85vh;">
+<div style="width:75%; height:80vh;">
   <div id="map"></div>
 </div>
-<div style="width:75%; height:15vh; background: #fafafa; padding: 20px;">
-  <span>1990</span>
-  <input list="volsettings" mutiple [value]="date" (change)='changedate($event.target.value)' type="range" min="1990" max="2020" step="1" />
-  <span>2020</span>
-<datalist id="volsettings">
-  <option>2015</option>
-  <option>2010</option>
-  <option>2011</option>
-  <option>2010</option>
-  <option>2014</option>
-  <option>2007</option>
+<div style="width:75%; height:20vh; background: #fafafa; padding: 20px;">
+<p>From Year: {{ fromDate }}</p>
+  <span>{{startDate}}</span>
+  <input list="fromDateList" mutiple [value]="fromDate" (change)='changedate("fromDate", $event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
+  <span>{{endDate}}</span>
+
+<datalist id="fromDateList">
+<option *ng-for="#o of storeDates">{{o.name}}</option>
+</datalist>
+
+<p>To Year: {{ toDate }}</p>
+  <span>{{startDate}}</span>
+  <input list="toDateList" mutiple [value]="toDate" (change)='changedate("toDate",$event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
+  <span>{{endDate}}</span>
+<datalist id="toDateList">
+<option *ng-for="#o of storeDates">{{o.name}}</option>
 </datalist>
 
 
 </div>
+
   </main>
  

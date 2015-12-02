@@ -1,7 +1,7 @@
 /*
  * Angular 2 decorators and services
  */
-import {Directive, Component, View, ElementRef, NgZone} from 'angular2/angular2';
+import {Directive, Component, View, ElementRef, NgZone, NgFor} from 'angular2/angular2';
 import {RouteConfig, Router} from 'angular2/router';
 import {Http, Headers} from 'angular2/http';
 
@@ -29,7 +29,7 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
   selector: 'app', // <app></app>
   // We need to tell Angular's compiler which directives are in our template.
   // Doing so will allow Angular to attach our behavior to an element
-  directives: [ CORE_DIRECTIVES, FORM_DIRECTIVES, ROUTER_DIRECTIVES ],
+  directives: [ CORE_DIRECTIVES, FORM_DIRECTIVES, ROUTER_DIRECTIVES, NgFor],
   // Our list of styles in our component. We may add more to compose many styles together
   styles: [`
     .title {
@@ -56,28 +56,39 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
 export class App {
   // These are member type
   strokeOpacity;
-  title: string;
   uid;
-  address: string = 'po5 1he';
   map;
   stores = [];
+  distance; 
   customerDetails = [];
-  data; // default data
+
+
   storeMarkers = [];
   customerMarkers = [];
   zone: NgZone;
-  distance;
   lines = [];
   greenMax;
   redMin;
   cusPostCode;
-  date;
+  visitsNumber;
+  // history vars
+  storeDates = [];
+  startDate;
+  endDate;
+  fromDate; 
+  toDate;
 
   constructor(public http: Http, zone:NgZone) {
     this.strokeOpacity = 50;
-    this.greenMax = parseFloat(2).toFixed(2);
+    this.greenMax = parseFloat(0.5).toFixed(2);
     this.redMin = parseFloat(5).toFixed(2);
-    this.date = 2100;
+    this.toDate = 2015;
+    this.fromDate = 2000;
+    this.startDate = 2000;
+    this.endDate = 2015;
+    this.stores = [];
+
+      this.zone = zone;  
 
     var mapOptions = {
         zoom: 13,
@@ -88,7 +99,7 @@ export class App {
 
   }
   onInit() {
-    this.getData(2015);
+    this.getData();
   }
 
   clearOverlays() {
@@ -109,23 +120,29 @@ export class App {
   addStoreMarkers (marks){
 
     for (var i = 0; i < marks.storeOpenings.length; ++i) {
+      var d = new Date(marks.storeOpenings[i].openDate);
+      var n = d.getFullYear();
+
+      this.storeDates[i] = {"name": n};
 
       this.stores[marks.storeOpenings[i].storeId] = marks.storeOpenings[i];
-      this.storeMarkers[i] = new google.maps.Marker({
-          map: this.map,
-          position: {"lat": marks.storeOpenings[i].storeLocation.latitude, "lng": marks.storeOpenings[i].storeLocation.longitude},
-          title: "tesco",
-          icon: "tesco.png"
-      });
-      this.storeMarkers[i].setMap(this.map);
+
+      if( parseInt(this.toDate) >= n){
+        this.storeMarkers[i] = new google.maps.Marker({
+            map: this.map,
+            position: {"lat": marks.storeOpenings[i].storeLocation.latitude, "lng": marks.storeOpenings[i].storeLocation.longitude},
+            title: "tesco",
+            icon: "tesco.png"
+        });
+        this.storeMarkers[i].setMap(this.map);
+      }
+
     }
   }
   addCustomerMarkers (marks){
 
 
     for (var i = 0; i < marks.customerVisits.length; ++i) {
-        console.log("USER: "+i);
-
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
           position: {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
@@ -149,7 +166,6 @@ export class App {
         map: this.map
       });
       this.lines[i].uid = i;
-      this.zone = zone;  
 
       var that = this;
       this.lines[i].addListener('mouseover',  (function(){
@@ -166,46 +182,50 @@ export class App {
       }));
     }
   }
-  changedate (year) {
+  changedate (type, date) {
     this.clearOverlays();
     this.customerMarkers = [];
     this.storeMarkers = [];
     this.lines = [];
-    this.getData(year);
-    
-
-
+    if(type === "fromDate"){
+      this.fromDate = date;
+    }else if (type === "toDate"){
+      this.toDate = date;
+    }
+    this.getData(this.fromDate, this.toDate);
   }
   updateInfo(uid) {
     this.zone.run(() => {    
       this.distance = "" + this.customerDetails[uid].distanceTravelled + " Miles"; 
-      this.cusPostCode = this.customerDetails[uid].postcode;
+      this.cusPostCode = this.customerDetails[uid].customerLocation.postCode;
       this.uid = uid;
+      this.visitsNumber = this.customerDetails[uid].visitCount;
     });
   }
   calulateColour(distance){
+    distance = parseFloat(distance);
 
-    switch (true) {
-      case (0 <= distance &&  distance < this.greenMax): 
-        return "GREEN"
-      break;
-      case (this.greenMax <= distance &&  distance < this.redMin): 
-        return "ORANGE";
-      break;
-      case (this.redMin <= distance &&  distance < 999): 
-        return "RED";
-      break;
+    if (distance < this.greenMax){
+      return "GREEN";
+    } else if (this.greenMax < distance &&  distance < this.redMin){
+      return "ORANGE";
+    } else {
+      return "RED";
     }
+
   }
   recalulateColour (val, colour){
     if (colour === "green"){
-      this.greenMax = parseFloat(val).toFixed(2);
+      this.greenMax = parseFloat(val);
+
     } else if(colour === "red"){  
-      this.redMin = parseFloat(val).toFixed(2);
+      this.redMin = parseFloat(val);
+
     }
     else if(colour === "opacity"){  
       this.strokeOpacity = val ;
     }
+
     for (var i = 0; i < this.customerDetails.length; ++i) {
       this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distanceTravelled),
         strokeOpacity: this.strokeOpacity / 100 });
@@ -218,12 +238,12 @@ export class App {
     this.http.get('/clientapi/stores')
       .map(res => res['_body'])
       .subscribe(
-       data => this.shops = JSON.parse(data),
+       data => this.stores = JSON.parse(data),
        err => this.errorMessage(err),
-       () => this.addStoreMarkers(this.shops)
+       () => this.addStoreMarkers(this.stores)
     );
 
-    this.http.get('/clientapi/customer_visits?fromDate=2001-01-01&toDate=2015-01-01')
+    this.http.get('/clientapi/customer_visits?fromDate='+this.fromDate+'-01-01&toDate='+this.toDate+'-01-01')
       .map(res => res['_body'])
       .subscribe(
         data => this.customerDetails = JSON.parse(data),
