@@ -71,12 +71,16 @@ export class App {
   redMin;
   cusPostCode;
   visitsNumber;
+  infoType;
+  mean;
+  
   // history vars
   storeDates = [];
   startDate;
   endDate;
   fromDate; 
   toDate;
+
 
   constructor(public http: Http, zone:NgZone) {
     this.strokeOpacity = 50;
@@ -87,6 +91,8 @@ export class App {
     this.startDate = 2000;
     this.endDate = 2015;
     this.stores = [];
+    this.infoType = "";
+    this.mean = "";
 
       this.zone = zone;  
 
@@ -94,9 +100,7 @@ export class App {
         zoom: 13,
         center: new google.maps.LatLng(50.81926335, -1.0844131)
     }
-
     this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
   }
   onInit() {
     this.getData();
@@ -126,7 +130,7 @@ export class App {
       this.storeDates[i] = {"name": n};
 
       this.stores[marks.storeOpenings[i].storeId] = marks.storeOpenings[i];
-
+      this.stores[marks.storeOpenings[i].storeId].visitArray = [];
       if( parseInt(this.toDate) >= n){
         this.storeMarkers[i] = new google.maps.Marker({
             map: this.map,
@@ -135,13 +139,16 @@ export class App {
             icon: "tesco.png"
         });
         this.storeMarkers[i].setMap(this.map);
-      }
+        this.storeMarkers[i].uid = marks.storeOpenings[i].storeId;
 
+        var that = this;
+        this.storeMarkers[i].addListener('click',  (function(){
+          that.updateInfo(this.uid, "store");
+        }));
+      }
     }
   }
   addCustomerMarkers (marks){
-
-
     for (var i = 0; i < marks.customerVisits.length; ++i) {
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
@@ -166,6 +173,7 @@ export class App {
         map: this.map
       });
       this.lines[i].uid = i;
+      this.stores[marks.customerVisits[i].storeId].visitArray[i] = this.customerDetails[i].visitCount;
 
       var that = this;
       this.lines[i].addListener('mouseover',  (function(){
@@ -194,17 +202,32 @@ export class App {
     }
     this.getData(this.fromDate, this.toDate);
   }
-  updateInfo(uid) {
-    this.zone.run(() => {    
-      this.distance = "" + this.customerDetails[uid].distanceTravelled + " Miles"; 
-      this.cusPostCode = this.customerDetails[uid].customerLocation.postCode;
-      this.uid = uid;
-      this.visitsNumber = this.customerDetails[uid].visitCount;
+  updateInfo(uid, type = "customer") {
+    this.zone.run(() => { 
+      if (type === "customer"){
+        this.infoType = "customer";
+        this.customerDetails[uid].distanceTravelled + " Miles"; 
+        this.cusPostCode = this.customerDetails[uid].customerLocation.postCode;
+        this.uid = uid;
+        this.visitsNumber = this.customerDetails[uid].visitCount;
+        this.distance = "" + this.customerDetails[uid].distance;
+      }else {
+        this.infoType = "store";
+
+        if (this.stores[uid].visitArray.length !== 0){
+          var sum = this.stores[uid].visitArray.reduce(function(a, b) { return a + b; });
+          var avg = sum / this.stores[uid].visitArray.length;
+          this.mean = parseFloat(avg).toFixed(2);
+        } else {
+          this.mean = 0; 
+        }
+
+
+      }
     });
   }
   calulateColour(distance){
     distance = parseFloat(distance);
-
     if (distance < this.greenMax){
       return "GREEN";
     } else if (this.greenMax < distance &&  distance < this.redMin){
@@ -212,7 +235,6 @@ export class App {
     } else {
       return "RED";
     }
-
   }
   recalulateColour (val, colour){
     if (colour === "green"){
@@ -220,7 +242,6 @@ export class App {
 
     } else if(colour === "red"){  
       this.redMin = parseFloat(val);
-
     }
     else if(colour === "opacity"){  
       this.strokeOpacity = val ;
