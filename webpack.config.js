@@ -142,6 +142,11 @@ module.exports = {
       // support for .html as raw text
       { test: /\.html$/,  loader: 'raw' },
 
+      {
+        test: /\.scss$/,
+        loader: 'style!css!sass?includePaths[]=' + path.join(__dirname, "node_modules")
+      },
+
       // Support for .ts files.
       { test: /\.ts$/,    loader: 'ts',
         query: {
@@ -205,7 +210,7 @@ function env(configEnv) {
 }
 
 function getBanner() {
-  return 'Angular2 Webpack Starter v'+ pkg.version +' by @gdi2990 from @AngularClass';
+  return '';
 }
 
 function root(args) {

@@ -1,0 +1,86 @@
+* {
+  font-style: sans-serif !important;
+}
+
+.customer-wrapper > .customer, .store-wrapper > .store {
+  display: block;
+}
+
+.customer, .store, .store-wrapper > .none {
+  display: none;
+}
+
+.map-wrapper {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.infoPanel {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  float: left;
+  width: auto;
+  display: inline-block;
+  background: rgba(255, 255, 525, 0.92);
+  z-index: 9999;
+  padding: 10px;
+}
+
+header {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 999;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.5);
+  h1 {
+    float: left;
+    padding: 0px;
+    font-style: Arial, sans-serif;
+  }
+  nav {
+    float: right;
+    padding: 0px;
+    a {
+      display: inline-block;
+      color: white;
+      padding: 25px 50px;
+      height: 30px;
+      text-decoration: none;
+      background: black;
+      section {
+        display: none;
+      }
+      &:hover section {
+        display: block;
+        position: fixed;
+        float: left;
+        right: 0px;
+        top: 80px;
+        background: rgba(0, 0, 0, 0.75);
+        p {
+          width: 40%;
+          float: left;
+          padding: 0px;
+          border-left: 5px solid black;
+          clear: both;
+          min-width: 400px;
+          span {
+            float: left;
+            width: 25%;
+            text-align: right;
+          }
+          input {
+            float: left;
+            width: 70%;
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,7 +11,8 @@
 .store-wrapper > .store {
   display: block;
 }
-.customer, .store {
+.customer, .store,
+.store-wrapper > .none {
   display: none;
 }
 
@@ -41,18 +42,19 @@ header {
   right: 0px;
   z-index: 999;
   height: 80px;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0,0,0,0.75);
 }
 header h1 {
   float: left;
   padding: 0px;
+  color: white;
   font-style: Arial, sans-serif;
 }
 header nav {
   float: right;
   padding: 0px;
 }
-header nav a {
+header nav > section {
   display: inline-block;
   color: white;
   padding: 25px 50px;
@@ -60,10 +62,10 @@ header nav a {
   text-decoration: none;
   background: black;
 }
-header nav a section { 
+header nav section section { 
   display: none;
 }
-header nav a:hover section {
+header nav section:hover section {
   display: block;
   position: fixed;
   float: left;
@@ -72,7 +74,7 @@ header nav a:hover section {
   background: rgba(0,0,0,0.75);
 }
 
-header nav a:hover section p{
+header nav section:hover section p{
   width: 40%;
   float: left;
   padding: 0px;
@@ -81,16 +83,31 @@ header nav a:hover section p{
   min-width: 400px;
 
 }
-header nav a:hover section p span {
+header nav section:hover section p span {
   float: left;
   width: 25%;
   text-align: right;
 
 }
-header nav a:hover section p input {
+header nav section:hover section p input {
   float: left;
   width: 70%;
+}
+header nav section:hover section.history {
+  padding: 1%;
+}
 
+header nav section:hover section.history > p {
+    width: 100%;
+    clear: both;
+}
+header nav section:hover section.history > span {
+  width: 9%;
+  float: left;
+}
+header nav section:hover section.history > input {
+  width: 80%;
+  float: left;
 
 }
 
@@ -113,6 +130,7 @@ header nav a:hover section p input {
       </div>
       <div class="store">
         <h2>Store Details </h2>
+        <p>Number of Customers: {{ storeCusNo }}</p>
         <p>Mean customer visits: {{ mean }}</p>
       </div>
   </div> 
@@ -120,10 +138,10 @@ header nav a:hover section p input {
 
 
 <header> 
-<h1> Shopper Thingy</h1>
+<h1> Shopper</h1>
 
 <nav>
-  <a href="#settings">Settings
+  <section>Settings
 
 <section class="settingArea">
     <p style="border-color: green;">
@@ -142,16 +160,17 @@ header nav a:hover section p input {
       <span>Opacity ({{ strokeOpacity }}):</span> <input [value]="opacity" (change)='recalulateColour($event.target.value, "opacity")' type="range" min="0" max="100" value="40" step="5" />
     </p>
 
+
 </section>
 
-  </a>
-  <a href="#timeline">Timeline
+  </section>
+  <section> Timeline
 
 
-<section>
+<section class="history">
 <p>From Year: {{ fromDate }}</p>
   <span>{{startDate}}</span>
-  <input list="fromDateList" mutiple [value]="fromDate" (change)='changedate("fromDate", $event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
+  <input list="fromDateList" mutiple value="{{ fromDate }}" (change)='changedate("fromDate", $event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
   <span>{{endDate}}</span>
 
 <datalist id="fromDateList">
@@ -160,16 +179,17 @@ header nav a:hover section p input {
 
 <p>To Year: {{ toDate }}</p>
   <span>{{startDate}}</span>
-  <input list="toDateList" mutiple [value]="toDate" (change)='changedate("toDate",$event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
+  <input list="toDateList" mutiple value="{{ toDate }}" (change)='changedate("toDate",$event.target.value)' type="range" min="{{startDate}}" max="{{endDate}}" step="1" />
   <span>{{endDate}}</span>
 <datalist id="toDateList">
 <option *ng-for="#o of storeDates">{{o.name}}</option>
 </datalist>
+    <p><button (click)="playHistory()">Play</button></p>
 
 </section>
 
 
-  </a>
+  </section>
 </nav>
 </header>
 

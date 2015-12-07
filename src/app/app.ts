@@ -32,12 +32,10 @@ import {ROUTER_DIRECTIVES} from 'angular2/router';
   directives: [ CORE_DIRECTIVES, FORM_DIRECTIVES, ROUTER_DIRECTIVES, NgFor],
   // Our list of styles in our component. We may add more to compose many styles together
   styles: [`
-    .title {
-      font-family: Arial, Helvetica, sans-serif;
-    }
     main,body {
       margin: 0;
       padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
 
     }
      #map {
@@ -72,7 +70,10 @@ export class App {
   cusPostCode;
   visitsNumber;
   infoType;
+
+  //Store details
   mean;
+  storeCusNo;
   
   // history vars
   storeDates = [];
@@ -84,10 +85,10 @@ export class App {
 
   constructor(public http: Http, zone:NgZone) {
     this.strokeOpacity = 50;
-    this.greenMax = parseFloat(0.5).toFixed(2);
+    this.greenMax = parseFloat(2).toFixed(2);
     this.redMin = parseFloat(5).toFixed(2);
-    this.toDate = 2015;
-    this.fromDate = 2000;
+    this.toDate = 2014;
+    this.fromDate = 2001;
     this.startDate = 2000;
     this.endDate = 2015;
     this.stores = [];
@@ -197,22 +198,44 @@ export class App {
     this.lines = [];
     if(type === "fromDate"){
       this.fromDate = date;
-    }else if (type === "toDate"){
+    } else if (type === "toDate"){
       this.toDate = date;
     }
+
+    // if(this.fromDate > this.toDate){
+    //   this.toDate = this.fromDate + 1;
+    // }
+
     this.getData(this.fromDate, this.toDate);
+    this.infoType = "none";
   }
+  playHistory() {
+    this.fromDate = this.startDate ;
+    this.toDate = this.startDate + 1; 
+    while (this.toDate < this.endDate) {
+      this.clearOverlays();
+      this.customerMarkers = [];
+      this.storeMarkers = [];
+      this.lines = [];
+      this.fromDate =+ 1;
+      this.toDate =+ 1;
+      console.log(this.fromDate, this.toDate);
+      setTimeout(50);
+    };
+  }
+
   updateInfo(uid, type = "customer") {
     this.zone.run(() => { 
       if (type === "customer"){
         this.infoType = "customer";
-        this.customerDetails[uid].distanceTravelled + " Miles"; 
         this.cusPostCode = this.customerDetails[uid].customerLocation.postCode;
         this.uid = uid;
         this.visitsNumber = this.customerDetails[uid].visitCount;
-        this.distance = "" + this.customerDetails[uid].distance;
+        this.distance = "" + this.customerDetails[uid].distanceTravelled + " Miles"; ;
       }else {
         this.infoType = "store";
+
+        this.storeCusNo = this.stores[uid].visitArray.length;
 
         if (this.stores[uid].visitArray.length !== 0){
           var sum = this.stores[uid].visitArray.reduce(function(a, b) { return a + b; });
