@@ -126,7 +126,9 @@ header nav section:hover section.history > input {
         <h2>Customer Details - #{{ uid }}</h2>
         <p> Post Code: {{cusPostCode}}</p>
         <p> Number of Visits: {{ visitsNumber }}</p>
-        <p> Distance traveled: {{ distance }}</p>
+        <p> Distance away from store: {{ distance }}</p>
+        <p> Travel time: {{ timeTravelled }} Minutes 
+        <p> Distance travelled to store: {{ distanceTravelled }}</p>
       </div>
       <div class="store">
         <h2>Store Details </h2>
@@ -184,8 +186,6 @@ header nav section:hover section.history > input {
 <datalist id="toDateList">
 <option *ng-for="#o of storeDates">{{o.name}}</option>
 </datalist>
-    <p><button (click)="playHistory()">Play</button></p>
-
 </section>
 
 

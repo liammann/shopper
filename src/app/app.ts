@@ -57,9 +57,7 @@ export class App {
   uid;
   map;
   stores = [];
-  distance; 
   customerDetails = [];
-
 
   storeMarkers = [];
   customerMarkers = [];
@@ -67,10 +65,13 @@ export class App {
   lines = [];
   greenMax;
   redMin;
-  cusPostCode;
-  visitsNumber;
-  infoType;
 
+  infoType;
+  visitsNumber;
+  cusPostCode;
+  timeTravelled;
+  distance; 
+  distanceTravelled;
   //Store details
   mean;
   storeCusNo;
@@ -81,7 +82,6 @@ export class App {
   endDate;
   fromDate; 
   toDate;
-
 
   constructor(public http: Http, zone:NgZone) {
     this.strokeOpacity = 50;
@@ -94,8 +94,7 @@ export class App {
     this.stores = [];
     this.infoType = "";
     this.mean = "";
-
-      this.zone = zone;  
+    this.zone = zone;  
 
     var mapOptions = {
         zoom: 13,
@@ -116,14 +115,12 @@ export class App {
      this.customerMarkers[i].setMap(null);
     }
     this.customerMarkers.length = 0;
-
     for (var i = 0; i < this.lines.length; i++ ) {
       this.lines[i].setMap(null);
     }
     this.lines.length = 0;
   }
   addStoreMarkers (marks){
-
     for (var i = 0; i < marks.storeOpenings.length; ++i) {
       var d = new Date(marks.storeOpenings[i].openDate);
       var n = d.getFullYear();
@@ -136,7 +133,7 @@ export class App {
         this.storeMarkers[i] = new google.maps.Marker({
             map: this.map,
             position: {"lat": marks.storeOpenings[i].storeLocation.latitude, "lng": marks.storeOpenings[i].storeLocation.longitude},
-            title: "tesco",
+            title: "tesco" + i,
             icon: "tesco.png"
         });
         this.storeMarkers[i].setMap(this.map);
@@ -154,7 +151,7 @@ export class App {
       this.customerMarkers[i] = new google.maps.Marker({
           map: this.map,
           position: {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
-          title: "test1",
+          title: "customer " + i,
           icon: 'customerIcon.png'
       });
 
@@ -168,7 +165,7 @@ export class App {
             {"lat": marks.customerVisits[i].customerLocation.latitude, "lng": marks.customerVisits[i].customerLocation.longitude},
             {"lat": this.stores[marks.customerVisits[i].storeId].storeLocation.latitude, "lng": this.stores[marks.customerVisits[i].storeId].storeLocation.longitude}
         ],
-        strokeColor: this.calulateColour(marks.customerVisits[i].distanceTravelled),
+        strokeColor: this.calulateColour(marks.customerVisits[i].distance),
         strokeOpacity: this.strokeOpacity / 100,
         strokeWeight: 2,
         map: this.map
@@ -201,38 +198,21 @@ export class App {
     } else if (type === "toDate"){
       this.toDate = date;
     }
-
-    // if(this.fromDate > this.toDate){
-    //   this.toDate = this.fromDate + 1;
-    // }
-
     this.getData(this.fromDate, this.toDate);
     this.infoType = "none";
-  }
-  playHistory() {
-    this.fromDate = this.startDate ;
-    this.toDate = this.startDate + 1; 
-    while (this.toDate < this.endDate) {
-      this.clearOverlays();
-      this.customerMarkers = [];
-      this.storeMarkers = [];
-      this.lines = [];
-      this.fromDate =+ 1;
-      this.toDate =+ 1;
-      console.log(this.fromDate, this.toDate);
-      setTimeout(50);
-    };
   }
 
   updateInfo(uid, type = "customer") {
     this.zone.run(() => { 
       if (type === "customer"){
         this.infoType = "customer";
-        this.cusPostCode = this.customerDetails[uid].customerLocation.postCode;
+        this.cusPostCode = this.customerDetails[uid].customerLocation.postcode;
         this.uid = uid;
         this.visitsNumber = this.customerDetails[uid].visitCount;
-        this.distance = "" + this.customerDetails[uid].distanceTravelled + " Miles"; ;
-      }else {
+        this.timeTravelled = this.customerDetails[uid].timeTravelled;
+        this.distance = "" + this.customerDetails[uid].distance + " Miles";
+        this.distanceTravelled = "" + this.customerDetails[uid].distanceTravelled + " Miles";
+      } else {
         this.infoType = "store";
 
         this.storeCusNo = this.stores[uid].visitArray.length;
@@ -271,11 +251,10 @@ export class App {
     }
 
     for (var i = 0; i < this.customerDetails.length; ++i) {
-      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distanceTravelled),
+      this.lines[i].setOptions({strokeColor: this.calulateColour(this.customerDetails[i].distance),
         strokeOpacity: this.strokeOpacity / 100 });
     }
   }
-
 
   getData(fromDate = "2000-01-01", toDate = "2015-01-01"){
 
